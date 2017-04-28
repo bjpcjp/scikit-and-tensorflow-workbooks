@@ -1,3 +1,5 @@
+![ebook cover](book-cover.jpg)
+
 # scikit-and-tensorflow-workbooks
 based on "Hands-On Machine Learning with Scikit-Learn &amp; TensorFlow" (O'Reilly, Aurelien Geron)
 
