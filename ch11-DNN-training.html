@@ -11754,7 +11754,7 @@ div#notebook {
 <h3 id="Vanishing-&amp;-Exploding-Gradients">Vanishing &amp; Exploding Gradients<a class="anchor-link" href="#Vanishing-&amp;-Exploding-Gradients">&#182;</a></h3><ul>
 <li>gradients get smaller as algorithm progresses to lower layers. Eventually GD leaves lower weights virtually unchanged. so training never converges.</li>
 <li>gradients can also grow out of control (often seen in RNNs).</li>
-<li><a href="http://goo.gl/1rhAef">Sigificant paper</a> - using combo of logistic sigmoid activiation with random weight initialization (normal, mean=0, stdev=1) -- output variance was &gt;&gt; input variance.</li>
+<li><a href="http://goo.gl/1rhAef">Significant paper</a> - using combo of logistic sigmoid activiation with random weight initialization (normal, mean=0, stdev=1) -- output variance was &gt;&gt; input variance.</li>
 <li>logistic activation: function saturates at 0 or 1 with derivative very close to 0 ==&gt; so backpropagation has no gradient to use.
 <img src="pics/sigmoid.png" alt="sigmoid"></li>
 </ul>
@@ -11771,10 +11771,33 @@ div#notebook {
 <li>For signals to flow properly in both directions, each layer's output variance should equal its input variance.</li>
 <li>Recommends initializing connection weights with random settings using #ins, #outs
 <img src="pics/init-params-for-activation-funcs.png" alt="init parameters"></li>
+<li>Default: <em>fully_connected()</em> function uses Xavier initialization w/ uniform distribution. Change to He initialization by using <em>variance_scaling_initializer()</em> function</li>
 </ul>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">tensorflow.contrib.layers</span> <span class="k">import</span> <span class="n">fully_connected</span>
+
+<span class="n">n_inputs</span> <span class="o">=</span> <span class="mi">28</span><span class="o">*</span><span class="mi">28</span>
+<span class="n">n_hidden1</span> <span class="o">=</span> <span class="mi">300</span>
+
+<span class="n">X</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_inputs</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">)</span>
+
+<span class="n">he_init</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">variance_scaling_initializer</span><span class="p">()</span>
+<span class="n">hidden1</span> <span class="o">=</span> <span class="n">fully_connected</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">n_hidden1</span><span class="p">,</span> <span class="n">weights_initializer</span><span class="o">=</span><span class="n">he_init</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s2">&quot;h1&quot;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
@@ -11796,35 +11819,18 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[35]:</div>
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># TF doesn&#39;t have leaky ReLU predefined, but easy to build.</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">def leaky_relu(z, name=None):</span>
-<span class="sd">    return tf.maximum(0.01 * z, z, name=name)</span>
 
-<span class="sd">hidden1 = fully_connected(X, n_hidden1, activation_fn=leaky_relu)</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="k">def</span> <span class="nf">leaky_relu</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">z</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+<span class="n">hidden1</span> <span class="o">=</span> <span class="n">fully_connected</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">n_hidden1</span><span class="p">,</span> <span class="n">activation_fn</span><span class="o">=</span><span class="n">leaky_relu</span><span class="p">)</span>
 </pre></div>
 
 </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[35]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>&#39;\ndef leaky_relu(z, name=None):\n    return tf.maximum(0.01 * z, z, name=name)\n\nhidden1 = fully_connected(X, n_hidden1, activation_fn=leaky_relu)\n&#39;</pre>
-</div>
-
-</div>
-
 </div>
 </div>
 
@@ -11866,7 +11872,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[36]:</div>
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># use MNIST dataset again</span>
@@ -11884,9 +11890,13 @@ div#notebook {
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Extracting /tmp/data/train-images-idx3-ubyte.gz
+<pre>Successfully downloaded train-images-idx3-ubyte.gz 9912422 bytes.
+Extracting /tmp/data/train-images-idx3-ubyte.gz
+Successfully downloaded train-labels-idx1-ubyte.gz 28881 bytes.
 Extracting /tmp/data/train-labels-idx1-ubyte.gz
+Successfully downloaded t10k-images-idx3-ubyte.gz 1648877 bytes.
 Extracting /tmp/data/t10k-images-idx3-ubyte.gz
+Successfully downloaded t10k-labels-idx1-ubyte.gz 4542 bytes.
 Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </pre>
 </div>
@@ -11898,7 +11908,7 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[37]:</div>
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#setup</span>
@@ -11951,7 +11961,7 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[38]:</div>
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">n_epochs</span> <span class="o">=</span> <span class="mi">20</span>
@@ -11986,26 +11996,26 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>0 Train accuracy: 0.71 Test accuracy: 0.699
-1 Train accuracy: 0.69 Test accuracy: 0.8161
-2 Train accuracy: 0.86 Test accuracy: 0.8486
-3 Train accuracy: 0.86 Test accuracy: 0.867
-4 Train accuracy: 0.75 Test accuracy: 0.8773
-5 Train accuracy: 0.88 Test accuracy: 0.885
-6 Train accuracy: 0.81 Test accuracy: 0.8868
-7 Train accuracy: 0.84 Test accuracy: 0.8981
-8 Train accuracy: 0.88 Test accuracy: 0.9015
-9 Train accuracy: 0.94 Test accuracy: 0.9024
-10 Train accuracy: 0.93 Test accuracy: 0.9052
-11 Train accuracy: 0.88 Test accuracy: 0.9076
-12 Train accuracy: 0.9 Test accuracy: 0.9096
-13 Train accuracy: 0.86 Test accuracy: 0.9104
-14 Train accuracy: 0.94 Test accuracy: 0.9134
-15 Train accuracy: 0.88 Test accuracy: 0.9141
-16 Train accuracy: 0.88 Test accuracy: 0.9148
-17 Train accuracy: 0.92 Test accuracy: 0.9173
-18 Train accuracy: 0.88 Test accuracy: 0.9195
-19 Train accuracy: 0.9 Test accuracy: 0.9199
+<pre>0 Train accuracy: 0.6 Test accuracy: 0.642
+1 Train accuracy: 0.73 Test accuracy: 0.7824
+2 Train accuracy: 0.81 Test accuracy: 0.827
+3 Train accuracy: 0.84 Test accuracy: 0.8539
+4 Train accuracy: 0.8 Test accuracy: 0.8686
+5 Train accuracy: 0.87 Test accuracy: 0.8759
+6 Train accuracy: 0.85 Test accuracy: 0.8843
+7 Train accuracy: 0.91 Test accuracy: 0.8903
+8 Train accuracy: 0.86 Test accuracy: 0.8969
+9 Train accuracy: 0.91 Test accuracy: 0.9018
+10 Train accuracy: 0.91 Test accuracy: 0.9014
+11 Train accuracy: 0.86 Test accuracy: 0.9065
+12 Train accuracy: 0.88 Test accuracy: 0.9078
+13 Train accuracy: 0.87 Test accuracy: 0.91
+14 Train accuracy: 0.93 Test accuracy: 0.911
+15 Train accuracy: 0.9 Test accuracy: 0.9123
+16 Train accuracy: 0.91 Test accuracy: 0.9141
+17 Train accuracy: 0.9 Test accuracy: 0.9149
+18 Train accuracy: 0.92 Test accuracy: 0.9159
+19 Train accuracy: 0.93 Test accuracy: 0.9174
 </pre>
 </div>
 </div>
@@ -12031,7 +12041,7 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[39]:</div>
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">threshold</span> <span class="o">=</span> <span class="mf">1.0</span>
@@ -12069,7 +12079,7 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[40]:</div>
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Reuse with TF</span>
@@ -12095,12 +12105,12 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[41]:</div>
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">original_w = [...] # Load the weights from the other framework</span>
-<span class="sd">original_b = [...] # Load the biases from the other framework</span>
+<span class="sd">original_w = [] # Load the weights from the other framework</span>
+<span class="sd">original_b = [] # Load the biases from the other framework</span>
 
 <span class="sd">X = tf.placeholder(tf.float32, shape=(None, n_inputs), name=&quot;X&quot;)</span>
 <span class="sd">hidden1 = fully_connected(X, n_hidden1, scope=&quot;hidden1&quot;)</span>
@@ -12144,11 +12154,11 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[41]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[16]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>&#39;\noriginal_w = [...] # Load the weights from the other framework\noriginal_b = [...] # Load the biases from the other framework\n\nX = tf.placeholder(tf.float32, shape=(None, n_inputs), name=&#34;X&#34;)\nhidden1 = fully_connected(X, n_hidden1, scope=&#34;hidden1&#34;)\n\n[...] # # Build the rest of the model\n\n# Get a handle on the variables created by fully_connected()\n\nwith tf.variable_scope(&#34;&#34;, default_name=&#34;&#34;, reuse=True): # root scope\n    hidden1_weights = tf.get_variable(&#34;hidden1/weights&#34;)\n    hidden1_biases = tf.get_variable(&#34;hidden1/biases&#34;)\n\n# Create nodes to assign arbitrary values to the weights and biases\noriginal_weights = tf.placeholder(tf.float32, shape=(n_inputs, n_hidden1))\noriginal_biases = tf.placeholder(tf.float32, shape=(n_hidden1))\n\nassign_hidden1_weights = tf.assign(hidden1_weights, original_weights)\nassign_hidden1_biases = tf.assign(hidden1_biases, original_biases)\n\ninit = tf.global_variables_initializer()\n\nwith tf.Session() as sess:\n    sess.run(init)\n    sess.run(\n        assign_hidden1_weights, \n        feed_dict={original_weights: original_w})\n        \n    sess.run(\n        assign_hidden1_biases, \n        feed_dict={original_biases: original_b})\n        \n    [...] # Train the model on your new task\n&#39;</pre>
+<pre>&#39;\noriginal_w = [] # Load the weights from the other framework\noriginal_b = [] # Load the biases from the other framework\n\nX = tf.placeholder(tf.float32, shape=(None, n_inputs), name=&#34;X&#34;)\nhidden1 = fully_connected(X, n_hidden1, scope=&#34;hidden1&#34;)\n\n[...] # # Build the rest of the model\n\n# Get a handle on the variables created by fully_connected()\n\nwith tf.variable_scope(&#34;&#34;, default_name=&#34;&#34;, reuse=True): # root scope\n    hidden1_weights = tf.get_variable(&#34;hidden1/weights&#34;)\n    hidden1_biases = tf.get_variable(&#34;hidden1/biases&#34;)\n\n# Create nodes to assign arbitrary values to the weights and biases\noriginal_weights = tf.placeholder(tf.float32, shape=(n_inputs, n_hidden1))\noriginal_biases = tf.placeholder(tf.float32, shape=(n_hidden1))\n\nassign_hidden1_weights = tf.assign(hidden1_weights, original_weights)\nassign_hidden1_biases = tf.assign(hidden1_biases, original_biases)\n\ninit = tf.global_variables_initializer()\n\nwith tf.Session() as sess:\n    sess.run(init)\n    sess.run(\n        assign_hidden1_weights, \n        feed_dict={original_weights: original_w})\n        \n    sess.run(\n        assign_hidden1_biases, \n        feed_dict={original_biases: original_b})\n        \n    [...] # Train the model on your new task\n&#39;</pre>
 </div>
 
 </div>
@@ -12172,13 +12182,12 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[42]:</div>
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd"># provide all trainable var in hidden layers 3,4 &amp; outputs to optimizer function</span>
-<span class="sd"># (this omits vars in hidden layers 1,2)</span>
-
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># provide all trainable var in hidden layers 3,4 &amp; outputs to optimizer function</span>
+<span class="c1"># (this omits vars in hidden layers 1,2)</span>
+<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">train_vars = tf.get_collection(</span>
 <span class="sd">    tf.GraphKeys.TRAINABLE_VARIABLES,</span>
 <span class="sd">    scope=&quot;hidden[34]|outputs&quot;)</span>
@@ -12199,11 +12208,11 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[42]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[17]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>&#39;\n# provide all trainable var in hidden layers 3,4 &amp; outputs to optimizer function\n# (this omits vars in hidden layers 1,2)\n\ntrain_vars = tf.get_collection(\n    tf.GraphKeys.TRAINABLE_VARIABLES,\n    scope=&#34;hidden[34]|outputs&#34;)\n\n# minimizer can\&#39;t touch layers 1,2 - they\&#39;re &#34;frozen&#34;\n\ntraining_op = optimizer.minimize(\n    loss, \n    var_list=train_vars)\n&#39;</pre>
+<pre>&#39;\ntrain_vars = tf.get_collection(\n    tf.GraphKeys.TRAINABLE_VARIABLES,\n    scope=&#34;hidden[34]|outputs&#34;)\n\n# minimizer can\&#39;t touch layers 1,2 - they\&#39;re &#34;frozen&#34;\n\ntraining_op = optimizer.minimize(\n    loss, \n    var_list=train_vars)\n&#39;</pre>
 </div>
 
 </div>
@@ -12226,7 +12235,7 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[43]:</div>
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="sd">&#39;&#39;&#39;import numpy as np</span>
@@ -12261,7 +12270,7 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[43]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[18]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -12369,34 +12378,17 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[44]:</div>
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># in TF</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">optimizer = tf.train.MomentumOptimizer(</span>
-<span class="sd">    learning_rate=learning_rate,</span>
-<span class="sd">    momentum=0.9)</span>
-<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">MomentumOptimizer</span><span class="p">(</span>
+    <span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">,</span>
+    <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
 </pre></div>
 
 </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[44]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>&#39;\noptimizer = tf.train.MomentumOptimizer(\n    learning_rate=learning_rate,\n    momentum=0.9)\n&#39;</pre>
-</div>
-
-</div>
-
 </div>
 </div>
 
@@ -12416,35 +12408,18 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[45]:</div>
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># in TF</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">optimizer = tf.train.MomentumOptimizer(</span>
-<span class="sd">    learning_rate=learning_rate,</span>
-<span class="sd">    momentum=0.9, </span>
-<span class="sd">    use_nesterov=True)</span>
-<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">MomentumOptimizer</span><span class="p">(</span>
+    <span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">,</span>
+    <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> 
+    <span class="n">use_nesterov</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 
 </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[45]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>&#39;\noptimizer = tf.train.MomentumOptimizer(\n    learning_rate=learning_rate,\n    momentum=0.9, \n    use_nesterov=True)\n&#39;</pre>
-</div>
-
-</div>
-
 </div>
 </div>
 
@@ -12478,36 +12453,19 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[46]:</div>
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># in TF</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">optimizer = tf.train.RMSPropOptimizer(</span>
-<span class="sd">    learning_rate=learning_rate,</span>
-<span class="sd">    momentum=0.9, </span>
-<span class="sd">    decay=0.9, </span>
-<span class="sd">    epsilon=1e-10)</span>
-<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">RMSPropOptimizer</span><span class="p">(</span>
+    <span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">,</span>
+    <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> 
+    <span class="n">decay</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> 
+    <span class="n">epsilon</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">10</span><span class="p">)</span>
 </pre></div>
 
 </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[46]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>&#39;\noptimizer = tf.train.RMSPropOptimizer(\n    learning_rate=learning_rate,\n    momentum=0.9, \n    decay=0.9, \n    epsilon=1e-10)\n&#39;</pre>
-</div>
-
-</div>
-
 </div>
 </div>
 
@@ -12533,33 +12491,16 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[47]:</div>
+<div class="prompt input_prompt">In&nbsp;[27]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># in TF</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">optimizer = tf.train.AdamOptimizer(</span>
-<span class="sd">    learning_rate=learning_rate)</span>
-<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">AdamOptimizer</span><span class="p">(</span>
+    <span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span>
 </pre></div>
 
 </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[47]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>&#39;\noptimizer = tf.train.AdamOptimizer(\n    learning_rate=learning_rate)\n&#39;</pre>
-</div>
-
-</div>
-
 </div>
 </div>
 
@@ -12575,51 +12516,34 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[48]:</div>
+<div class="prompt input_prompt">In&nbsp;[28]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># in TF</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">initial_learning_rate = 0.1</span>
-<span class="sd">decay_steps = 10000</span>
-<span class="sd">decay_rate = 1/10</span>
 
-<span class="sd">global_step = tf.Variable(</span>
-<span class="sd">    0, trainable=False)</span>
+<span class="n">initial_learning_rate</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">decay_steps</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">decay_rate</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">10</span>
 
-<span class="sd">learning_rate = tf.train.exponential_decay(</span>
-<span class="sd">    initial_learning_rate, </span>
-<span class="sd">    global_step,</span>
-<span class="sd">    decay_steps, </span>
-<span class="sd">    decay_rate)</span>
+<span class="n">global_step</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
+    <span class="mi">0</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-<span class="sd">optimizer = tf.train.MomentumOptimizer(</span>
-<span class="sd">    learning_rate, </span>
-<span class="sd">    momentum=0.9)</span>
+<span class="n">learning_rate</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">exponential_decay</span><span class="p">(</span>
+    <span class="n">initial_learning_rate</span><span class="p">,</span> 
+    <span class="n">global_step</span><span class="p">,</span>
+    <span class="n">decay_steps</span><span class="p">,</span> 
+    <span class="n">decay_rate</span><span class="p">)</span>
 
-<span class="sd">training_op = optimizer.minimize(</span>
-<span class="sd">    loss, </span>
-<span class="sd">    global_step=global_step)</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">MomentumOptimizer</span><span class="p">(</span>
+    <span class="n">learning_rate</span><span class="p">,</span> 
+    <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+
+<span class="n">training_op</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span>
+    <span class="n">loss</span><span class="p">,</span> 
+    <span class="n">global_step</span><span class="o">=</span><span class="n">global_step</span><span class="p">)</span>
 </pre></div>
 
 </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[48]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>&#39;\ninitial_learning_rate = 0.1\ndecay_steps = 10000\ndecay_rate = 1/10\n\nglobal_step = tf.Variable(\n    0, trainable=False)\n\nlearning_rate = tf.train.exponential_decay(\n    initial_learning_rate, \n    global_step,\n    decay_steps, \n    decay_rate)\n\noptimizer = tf.train.MomentumOptimizer(\n    learning_rate, \n    momentum=0.9)\n\ntraining_op = optimizer.minimize(\n    loss, \n    global_step=global_step)\n&#39;</pre>
-</div>
-
-</div>
-
 </div>
 </div>
 
@@ -12673,63 +12597,46 @@ Extracting /tmp/data/t10k-labels-idx1-ubyte.gz
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[49]:</div>
+<div class="prompt input_prompt">In&nbsp;[29]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># in TF</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">from tensorflow.contrib.layers import dropout</span>
 
-<span class="sd">[...]</span>
+<span class="kn">from</span> <span class="nn">tensorflow.contrib.layers</span> <span class="k">import</span> <span class="n">dropout</span>
 
-<span class="sd">is_training = tf.placeholder(</span>
-<span class="sd">    tf.bool, </span>
-<span class="sd">    shape=(), </span>
-<span class="sd">    name=&#39;is_training&#39;)</span>
+<span class="p">[</span><span class="o">...</span><span class="p">]</span>
 
-<span class="sd">keep_prob = 0.5</span>
+<span class="n">is_training</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+    <span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> 
+    <span class="n">shape</span><span class="o">=</span><span class="p">(),</span> 
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;is_training&#39;</span><span class="p">)</span>
 
-<span class="sd">X_drop = dropout(</span>
-<span class="sd">    X, </span>
-<span class="sd">    keep_prob, </span>
-<span class="sd">    is_training=is_training)</span>
-<span class="sd">    </span>
-<span class="sd">hidden1      = fully_connected(</span>
-<span class="sd">    X_drop, n_hidden1, scope=&quot;hidden1&quot;)</span>
-<span class="sd">    </span>
-<span class="sd">hidden1_drop = dropout(</span>
-<span class="sd">    hidden1, keep_prob, is_training=is_training)</span>
-<span class="sd">    </span>
-<span class="sd">hidden2      = fully_connected(</span>
-<span class="sd">    hidden1_drop, n_hidden2, scope=&quot;hidden2&quot;)</span>
-<span class="sd">    </span>
-<span class="sd">hidden2_drop = dropout(</span>
-<span class="sd">    hidden2, keep_prob, is_training=is_training)</span>
-<span class="sd">    </span>
-<span class="sd">logits       = fully_connected(</span>
-<span class="sd">    hidden2_drop, n_outputs, </span>
-<span class="sd">    activation_fn=None,</span>
-<span class="sd">    scope=&quot;outputs&quot;)</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="n">keep_prob</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="n">X_drop</span> <span class="o">=</span> <span class="n">dropout</span><span class="p">(</span>
+    <span class="n">X</span><span class="p">,</span> 
+    <span class="n">keep_prob</span><span class="p">,</span> 
+    <span class="n">is_training</span><span class="o">=</span><span class="n">is_training</span><span class="p">)</span>
+    
+<span class="n">hidden1</span>      <span class="o">=</span> <span class="n">fully_connected</span><span class="p">(</span>
+    <span class="n">X_drop</span><span class="p">,</span> <span class="n">n_hidden1</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s2">&quot;hidden1&quot;</span><span class="p">)</span>
+    
+<span class="n">hidden1_drop</span> <span class="o">=</span> <span class="n">dropout</span><span class="p">(</span>
+    <span class="n">hidden1</span><span class="p">,</span> <span class="n">keep_prob</span><span class="p">,</span> <span class="n">is_training</span><span class="o">=</span><span class="n">is_training</span><span class="p">)</span>
+    
+<span class="n">hidden2</span>      <span class="o">=</span> <span class="n">fully_connected</span><span class="p">(</span>
+    <span class="n">hidden1_drop</span><span class="p">,</span> <span class="n">n_hidden2</span><span class="p">,</span> <span class="n">scope</span><span class="o">=</span><span class="s2">&quot;hidden2&quot;</span><span class="p">)</span>
+    
+<span class="n">hidden2_drop</span> <span class="o">=</span> <span class="n">dropout</span><span class="p">(</span>
+    <span class="n">hidden2</span><span class="p">,</span> <span class="n">keep_prob</span><span class="p">,</span> <span class="n">is_training</span><span class="o">=</span><span class="n">is_training</span><span class="p">)</span>
+    
+<span class="n">logits</span>       <span class="o">=</span> <span class="n">fully_connected</span><span class="p">(</span>
+    <span class="n">hidden2_drop</span><span class="p">,</span> <span class="n">n_outputs</span><span class="p">,</span> 
+    <span class="n">activation_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">scope</span><span class="o">=</span><span class="s2">&quot;outputs&quot;</span><span class="p">)</span>
 </pre></div>
 
 </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[49]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>&#39;\nfrom tensorflow.contrib.layers import dropout\n\n[...]\n\nis_training = tf.placeholder(\n    tf.bool, \n    shape=(), \n    name=\&#39;is_training\&#39;)\n\nkeep_prob = 0.5\n\nX_drop = dropout(\n    X, \n    keep_prob, \n    is_training=is_training)\n    \nhidden1      = fully_connected(\n    X_drop, n_hidden1, scope=&#34;hidden1&#34;)\n    \nhidden1_drop = dropout(\n    hidden1, keep_prob, is_training=is_training)\n    \nhidden2      = fully_connected(\n    hidden1_drop, n_hidden2, scope=&#34;hidden2&#34;)\n    \nhidden2_drop = dropout(\n    hidden2, keep_prob, is_training=is_training)\n    \nlogits       = fully_connected(\n    hidden2_drop, n_outputs, \n    activation_fn=None,\n    scope=&#34;outputs&#34;)\n&#39;</pre>
-</div>
-
-</div>
-
 </div>
 </div>
 
