@@ -1,4 +1,4 @@
-# scikit-and-tensorflow-workbooks
+# scikit-and-tensorflow-workbook
 based on "Hands-On Machine Learning with Scikit-Learn &amp; TensorFlow" (O'Reilly, Aurelien Geron)
 
 [ebook repo](https://github.com/ageron/handson-ml/blob/master/15_autoencoders.ipynb)
